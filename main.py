@@ -4,7 +4,7 @@ from numpy.random import choice as np_choice
 class colonia:
     def __init__(self, distancia, n_ants, n_best, n_iterations, decay, alpha=1, beta=1): 
         self.distancia = distancia
-        self.pheromone = np.ones(self.distancia.shape) / len(distancia)
+        self.feromonio = np.ones(self.distancia.shape) / len(distancia)
         self.all_inds = range(len(distancia))
         self.n_ants = n_ants
         self.n_best = n_best
@@ -18,8 +18,8 @@ class colonia:
         menor_distancia = np.inf
 
         for i in range(self.n_iterations):
-            all_paths = self.gen_all_paths()
-            self.spread_pheromone(all_paths, self.n_best)
+            all_paths = self.gerar_all_paths()
+            self.spread_feromonio(all_paths, self.n_best)
             caminho_atual = min(all_paths, key=lambda x: x[1])
 
             print(f"Iteração {i + 1}: {caminho_atual}")
@@ -28,50 +28,50 @@ class colonia:
                 menor_caminho = caminho_atual[0]
                 menor_distancia = caminho_atual[1]
 
-            self.pheromone *= self.decay
+            self.feromonio *= self.decay
 
         return menor_caminho, menor_distancia
 
-    def spread_pheromone(self, all_paths, n_best):
+    def spread_feromonio(self, all_paths, n_best):
         sorted_paths = sorted(all_paths, key=lambda x: x[1])
         for path, dist in sorted_paths[:n_best]:
             for i in range(len(path) - 1):
                 move = (path[i], path[i + 1])
-                self.pheromone[move] += 1.0 / dist
+                self.feromonio[move] += 1.0 / dist
             move = (path[-1], path[0])
-            self.pheromone[move] += 1.0 / dist
+            self.feromonio[move] += 1.0 / dist
 
-    def gen_path_dist(self, path):
+    def gerar_path_dist(self, path):
         total_dist = 0
         for i in range(len(path) - 1):
             total_dist += self.distancia[path[i], path[i + 1]]
         total_dist += self.distancia[path[-1], path[0]]
         return total_dist
 
-    def gen_all_paths(self):
+    def gerar_all_paths(self):
         all_paths = []
         for _ in range(self.n_ants):
             start_node = np.random.randint(0, len(self.distancia))
-            path = self.gen_path(start_node)
-            dist = self.gen_path_dist(path)
+            path = self.gerar_path(start_node)
+            dist = self.gerar_path_dist(path)
             all_paths.append((path, dist))
             
         return all_paths
 
-    def gen_path(self, start):
+    def gerar_path(self, start):
         path = [start]
         visited = set()
         visited.add(start)
         prev = start
 
         for _ in range(len(self.distancia) - 1):
-            move = self.pick_move(self.pheromone[prev], self.distancia[prev], visited)
+            move = self.escolher_movimento(self.feromonio[prev], self.distancia[prev], visited)
             path.append(move)
             prev = move
             visited.add(move)
         return path
 
-    def pick_move(self, feromonio, dist, visited):
+    def escolher_movimento(self, feromonio, dist, visited):
         feromonio = np.copy(feromonio)
         feromonio[list(visited)] = 0
         
