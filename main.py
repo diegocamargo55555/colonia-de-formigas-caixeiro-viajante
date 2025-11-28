@@ -64,7 +64,7 @@ class colonia:
         prev = start
 
         for _ in range(len(self.distancias) - 1):
-            move = self.pick_move(self.feromonio[prev], self.distancias[prev], visitado)
+            move = self.escolher_movimento(self.feromonio[prev], self.distancias[prev], visitado)
             path.append(move)
             prev = move
             visitado.add(move)
@@ -72,7 +72,7 @@ class colonia:
         path.append(start)
         return path
 
-    def pick_move(self, feromonio, dist, visitado):
+    def escolher_movimento(self, feromonio, dist, visitado):
         feromonio = np.copy(feromonio)
         feromonio[list(visitado)] = 0
         linha = feromonio ** self.alfa * ((1.0 / dist) ** self.beta)
