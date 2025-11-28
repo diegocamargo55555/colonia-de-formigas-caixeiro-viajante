@@ -1,13 +1,13 @@
 import numpy as np
 from numpy.random import choice as np_choice
 
-class AntColony:
-    def __init__(self, distancias, n_ants, n_best, n_iteracoes, evaporacao, alfa=1, beta=1):  # Corrigido o nome do construtor
+class colonia:
+    def __init__(self, distancias, n_ants, n_melhores, n_iteracoes, evaporacao, alfa=1, beta=1):  
         self.distancias = distancias
         self.feromonio = np.ones(self.distancias.shape) / len(distancias)
         self.all_inds = range(len(distancias))
         self.n_ants = n_ants
-        self.n_best = n_best
+        self.n_melhores = n_melhores
         self.n_iteracoes = n_iteracoes
         self.evaporacao = evaporacao
         self.alfa = alfa
@@ -18,8 +18,8 @@ class AntColony:
         all_menor_distancia = np.inf
 
         for i in range(self.n_iteracoes):
-            all_paths = self.gen_all_paths()
-            self.depositar_feromonio(all_paths, self.n_best)
+            all_paths = self.gerar_todos_caminhos()
+            self.depositar_feromonio(all_paths, self.n_melhores)
             menor_path = min(all_paths, key=lambda x: x[1])
 
             print(f"Iteração {i + 1}: {menor_path}")
@@ -28,13 +28,13 @@ class AntColony:
                 all_menor_path = menor_path[0]
                 all_menor_distancia = menor_path[1]
 
-            self.feromonio *= self.evaporacao  # evaporacao feromonio after each iteration
+            self.feromonio *= self.evaporacao  
 
         return all_menor_path, all_menor_distancia
 
-    def depositar_feromonio(self, all_paths, n_best):
+    def depositar_feromonio(self, all_paths, n_melhores):
         caminhos_ordenados = sorted(all_paths, key=lambda x: x[1])
-        for path, dist in caminhos_ordenados[:n_best]:
+        for path, dist in caminhos_ordenados[:n_melhores]:
             for i in range(len(path) - 1):
                 move = (path[i], path[i + 1])
                 self.feromonio[move] += 1.0 / dist
@@ -42,22 +42,22 @@ class AntColony:
             move = (path[-1], path[0])
             self.feromonio[move] += 1.0 / dist
 
-    def gen_path_dist(self, path):
+    def get_distancia(self, path):
         total_dist = 0
         for i in range(len(path) - 1):
             total_dist += self.distancias[path[i], path[i + 1]]
         total_dist += self.distancias[path[-1], path[0]]
         return total_dist
 
-    def gen_all_paths(self):
+    def gerar_todos_caminhos(self):
         all_paths = []
         for _ in range(self.n_ants):
-            path = self.gen_path(0)
-            dist = self.gen_path_dist(path)
+            path = self.gerar_path(0)
+            dist = self.get_distancia(path)
             all_paths.append((path, dist))
         return all_paths
 
-    def gen_path(self, start):
+    def gerar_path(self, start):
         path = []
         visitado = set()
         visitado.add(start)
@@ -91,7 +91,7 @@ distancias = np.random.randint(1, 101, size=(n_locais, n_locais)).astype(float)
 np.fill_diagonal(distancias, 1000)  # Definindo um valor suficientemente grande para evitar auto-loops
 distancias = np.minimum(distancias, distancias.T)
 
-n_best = 3
+n_melhores = 5
 n_iteracoes = 200
 evaporacao = 0.5
 alfa = 1
@@ -100,7 +100,7 @@ beta = 5
 # Testando diferentes quantidades de formigas
 for n_ants in [50, 100, 150, 250]:
     print(f"\nExecutando o ACO com {n_ants} formigas:\n")
-    ant_colony = AntColony(distancias, n_ants, n_best, n_iteracoes, evaporacao, alfa, beta)
+    ant_colony = colonia(distancias, n_ants, n_melhores, n_iteracoes, evaporacao, alfa, beta)
     best_path, best_distancia = ant_colony.run()
     print(f"Melhor caminho com {n_ants} formigas: {best_path}")
     print(f"Melhor distância com {n_ants} formigas: {best_distancia}")
